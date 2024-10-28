@@ -1,0 +1,58 @@
+<html>
+<head>
+    <title>Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin=""/>
+    <style>
+        #map {
+            height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <div id="markers"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+    <script>
+        function getRandomInRange(from, to, fixed) {
+            return (Math.random() * (to - from) + from).toFixed(fixed) * 1;
+        }
+
+        var map = L.map('map').setView([32.5, -95], 4);
+
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+         {
+            maxZoom: 19,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+       
+
+        for (var i = 0; i < 3; i++)
+        {
+            var lat = getRandomInRange(30, 35, 3);
+            var lng = getRandomInRange(-90, -100, 3);
+            index = i;
+            counter = 0;
+            // I have to pass in i or get 4 for all markers in api call still out order thus use async still
+            // use counter because doesnt matter the which of 3 is 1 just that it is in order
+            (async function(lat, lng, index) 
+            {
+                var marker = L.marker([lat, lng]).addTo(map);
+                // marker.bindPopup("Marker " + (index + 1)).openPopup();
+                marker.bindPopup("Marker " + counter).openPopup();
+
+                await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`).then(response => response.json()).then(data =>
+                 {
+                    counter = counter + 1;
+                    document.getElementById("markers").innerHTML += "<p>Marker " + counter + ": Latitude: " + lat + ", Longitude: " + lng + "<br> Locality: " + data.locality + "</p>";
+                });
+            })(lat, lng, index);
+        }
+    </script>
+</body>
+</html>
